@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/buildwithadi/rest-api/internal/config"
+	"github.com/buildwithadi/rest-api/internal/http/handlers/student"
+	"github.com/buildwithadi/rest-api/internal/storage/sqlite"
 )
 
 func main() {
@@ -19,13 +21,18 @@ func main() {
 	cfg := config.MustLoad()
 
 	// database setup
+	_, err := sqlite.New(cfg)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	slog.Info("storage initialize", slog.String("env", cfg.Env), slog.String("version", "1.0.0"))
 
 	// setup router
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome to student api"))
-	})
+	router.HandleFunc("POST /api/students", student.New())
 
 	// setup server
 	server := http.Server{
